@@ -498,9 +498,11 @@
            DISPLAY 'CBEXPORT: Processing card records'
            
            PERFORM 5600-READ-CARD-RECORD
-           
+
            PERFORM UNTIL WS-CARD-EOF
-               PERFORM 5700-CREATE-CARD-EXPORT-RECORD
+               IF CARD-ACTIVE-STATUS NOT = 'D'
+                   PERFORM 5700-CREATE-CARD-EXPORT-RECORD
+               END-IF
                PERFORM 5600-READ-CARD-RECORD
            END-PERFORM
            

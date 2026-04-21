@@ -749,29 +749,38 @@
                 RESP2     (WS-REAS-CD)                                          
            END-EXEC                                                             
                                                                                 
-           EVALUATE WS-RESP-CD                                                  
-               WHEN DFHRESP(NORMAL)                                             
-                  SET FOUND-CARDS-FOR-ACCOUNT TO TRUE                           
-               WHEN DFHRESP(NOTFND)                                             
-                  SET INPUT-ERROR                    TO TRUE                    
-                  SET FLG-ACCTFILTER-NOT-OK          TO TRUE                    
-                  SET FLG-CARDFILTER-NOT-OK          TO TRUE                    
-                  IF  WS-RETURN-MSG-OFF                                         
-                      SET DID-NOT-FIND-ACCTCARD-COMBO TO TRUE                   
-                  END-IF                                                        
-               WHEN OTHER                                                       
-                  SET INPUT-ERROR                    TO TRUE                    
-                  IF  WS-RETURN-MSG-OFF                                         
-                      SET FLG-ACCTFILTER-NOT-OK      TO TRUE                    
-                  END-IF                                                        
-                  MOVE 'READ'                        TO ERROR-OPNAME            
-                  MOVE LIT-CARDFILENAME                TO ERROR-FILE            
-                  MOVE WS-RESP-CD                    TO ERROR-RESP              
-                  MOVE WS-REAS-CD                    TO ERROR-RESP2             
-                  MOVE WS-FILE-ERROR-MESSAGE         TO WS-RETURN-MSG           
-           END-EVALUATE                                                         
-           .                                                                    
-                                                                                
+           EVALUATE WS-RESP-CD
+               WHEN DFHRESP(NORMAL)
+                  IF CARD-ACTIVE-STATUS = 'D'
+                     SET INPUT-ERROR                    TO TRUE
+                     SET FLG-ACCTFILTER-NOT-OK          TO TRUE
+                     SET FLG-CARDFILTER-NOT-OK          TO TRUE
+                     IF  WS-RETURN-MSG-OFF
+                         SET DID-NOT-FIND-ACCTCARD-COMBO TO TRUE
+                     END-IF
+                  ELSE
+                     SET FOUND-CARDS-FOR-ACCOUNT TO TRUE
+                  END-IF
+               WHEN DFHRESP(NOTFND)
+                  SET INPUT-ERROR                    TO TRUE
+                  SET FLG-ACCTFILTER-NOT-OK          TO TRUE
+                  SET FLG-CARDFILTER-NOT-OK          TO TRUE
+                  IF  WS-RETURN-MSG-OFF
+                      SET DID-NOT-FIND-ACCTCARD-COMBO TO TRUE
+                  END-IF
+               WHEN OTHER
+                  SET INPUT-ERROR                    TO TRUE
+                  IF  WS-RETURN-MSG-OFF
+                      SET FLG-ACCTFILTER-NOT-OK      TO TRUE
+                  END-IF
+                  MOVE 'READ'                        TO ERROR-OPNAME
+                  MOVE LIT-CARDFILENAME                TO ERROR-FILE
+                  MOVE WS-RESP-CD                    TO ERROR-RESP
+                  MOVE WS-REAS-CD                    TO ERROR-RESP2
+                  MOVE WS-FILE-ERROR-MESSAGE         TO WS-RETURN-MSG
+           END-EVALUATE
+           .
+
        9100-GETCARD-BYACCTCARD-EXIT.                                            
            EXIT                                                                 
            .                                                                    
@@ -790,23 +799,29 @@
                 RESP2     (WS-REAS-CD)                                          
            END-EXEC                                                             
                                                                                 
-           EVALUATE WS-RESP-CD                                                  
-               WHEN DFHRESP(NORMAL)                                             
-                  SET FOUND-CARDS-FOR-ACCOUNT TO TRUE                           
-               WHEN DFHRESP(NOTFND)                                             
-                  SET INPUT-ERROR                 TO TRUE                       
-                  SET FLG-ACCTFILTER-NOT-OK                TO TRUE              
-                  SET DID-NOT-FIND-ACCT-IN-CARDXREF TO TRUE                     
-               WHEN OTHER                                                       
-                  SET INPUT-ERROR                 TO TRUE                       
-                  SET FLG-ACCTFILTER-NOT-OK                TO TRUE              
-                  MOVE 'READ'                     TO ERROR-OPNAME               
-                  MOVE LIT-CARDFILENAME-ACCT-PATH TO ERROR-FILE                 
-                  MOVE WS-RESP-CD                 TO ERROR-RESP                 
-                  MOVE WS-REAS-CD                 TO ERROR-RESP2                
-                  MOVE WS-FILE-ERROR-MESSAGE      TO WS-RETURN-MSG              
-           END-EVALUATE                                                         
-           .                                                                    
+           EVALUATE WS-RESP-CD
+               WHEN DFHRESP(NORMAL)
+                  IF CARD-ACTIVE-STATUS = 'D'
+                     SET INPUT-ERROR                 TO TRUE
+                     SET FLG-ACCTFILTER-NOT-OK                TO TRUE
+                     SET DID-NOT-FIND-ACCT-IN-CARDXREF TO TRUE
+                  ELSE
+                     SET FOUND-CARDS-FOR-ACCOUNT TO TRUE
+                  END-IF
+               WHEN DFHRESP(NOTFND)
+                  SET INPUT-ERROR                 TO TRUE
+                  SET FLG-ACCTFILTER-NOT-OK                TO TRUE
+                  SET DID-NOT-FIND-ACCT-IN-CARDXREF TO TRUE
+               WHEN OTHER
+                  SET INPUT-ERROR                 TO TRUE
+                  SET FLG-ACCTFILTER-NOT-OK                TO TRUE
+                  MOVE 'READ'                     TO ERROR-OPNAME
+                  MOVE LIT-CARDFILENAME-ACCT-PATH TO ERROR-FILE
+                  MOVE WS-RESP-CD                 TO ERROR-RESP
+                  MOVE WS-REAS-CD                 TO ERROR-RESP2
+                  MOVE WS-FILE-ERROR-MESSAGE      TO WS-RETURN-MSG
+           END-EVALUATE
+           .
        9150-GETCARD-BYACCT-EXIT.                                                
            EXIT                                                                 
            .                                                                    

@@ -71,14 +71,16 @@
            DISPLAY 'START OF EXECUTION OF PROGRAM CBACT02C'.                    
            PERFORM 0000-CARDFILE-OPEN.                                          
                                                                                 
-           PERFORM UNTIL END-OF-FILE = 'Y'                                      
-               IF  END-OF-FILE = 'N'                                            
-                   PERFORM 1000-CARDFILE-GET-NEXT                               
-                   IF  END-OF-FILE = 'N'                                        
-                       DISPLAY CARD-RECORD                                      
-                   END-IF                                                       
-               END-IF                                                           
-           END-PERFORM.                                                         
+           PERFORM UNTIL END-OF-FILE = 'Y'
+               IF  END-OF-FILE = 'N'
+                   PERFORM 1000-CARDFILE-GET-NEXT
+                   IF  END-OF-FILE = 'N'
+                       IF CARD-ACTIVE-STATUS NOT = 'D'
+                           DISPLAY CARD-RECORD
+                       END-IF
+                   END-IF
+               END-IF
+           END-PERFORM.
                                                                                 
            PERFORM 9000-CARDFILE-CLOSE.                                         
                                                                                 

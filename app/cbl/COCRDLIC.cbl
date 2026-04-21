@@ -74,9 +74,11 @@
          05 WS-EDIT-SELECT-ARRAY REDEFINES  WS-EDIT-SELECT-FLAGS.               
             10 WS-EDIT-SELECT                      PIC X(1)                     
                                                   OCCURS 7 TIMES.               
-               88 SELECT-OK                        VALUES 'S', 'U'.             
-               88 VIEW-REQUESTED-ON                VALUE 'S'.                   
-               88 UPDATE-REQUESTED-ON              VALUE 'U'.                   
+               88 SELECT-OK                        VALUES 'S', 'U'
+                                                        , 'D'.
+               88 VIEW-REQUESTED-ON                VALUE 'S'.
+               88 UPDATE-REQUESTED-ON              VALUE 'U'.
+               88 DELETE-REQUESTED-ON              VALUE 'D'.
                88 SELECT-BLANK                     VALUES                       
                                                    ' ',                         
                                                    LOW-VALUES.                  
@@ -112,16 +114,16 @@
          05  WS-INFO-MSG                           PIC X(45).                   
            88  WS-NO-INFO-MESSAGE                 VALUES                        
                                                   SPACES LOW-VALUES.            
-           88  WS-INFORM-REC-ACTIONS          VALUE                             
-               'TYPE S FOR DETAIL, U TO UPDATE ANY RECORD'.                     
+           88  WS-INFORM-REC-ACTIONS          VALUE
+               'S=VIEW  U=UPDATE  D=DELETE  (ONE RECORD)'.
          05  WS-ERROR-MSG                         PIC X(75).                    
            88  WS-ERROR-MSG-OFF                   VALUE SPACES.                 
            88  WS-EXIT-MESSAGE                     VALUE                        
                'PF03 PRESSED.EXITING'.                                          
            88  WS-NO-RECORDS-FOUND                 VALUE                        
                'NO RECORDS FOUND FOR THIS SEARCH CONDITION.'.                   
-           88  WS-MORE-THAN-1-ACTION              VALUE                         
-               'PLEASE SELECT ONLY ONE RECORD TO VIEW OR UPDATE'.               
+           88  WS-MORE-THAN-1-ACTION              VALUE
+               'PLEASE SELECT ONLY ONE RECORD TO ACT UPON'.
            88  WS-INVALID-ACTION-CODE              VALUE                        
                'INVALID ACTION CODE'.                                           
          05  WS-PFK-FLAG                           PIC X(1).                    
@@ -200,14 +202,22 @@
              VALUE 'COCRDSL'.                                                   
          05  LIT-CARDDTLMAP                         PIC X(7)                    
              VALUE 'CCRDSLA'.                                                   
-         05  LIT-CARDUPDPGM                         PIC X(8)                    
-             VALUE 'COCRDUPC'.                                                  
-         05  LIT-CARDUPDTRANID                      PIC X(4)                    
-             VALUE 'CCUP'.                                                      
-         05  LIT-CARDUPDMAPSET                      PIC X(7)                    
-             VALUE 'COCRDUP'.                                                   
-         05  LIT-CARDUPDMAP                         PIC X(7)                    
-             VALUE 'CCRDUPA'.                                                   
+         05  LIT-CARDUPDPGM                         PIC X(8)
+             VALUE 'COCRDUPC'.
+         05  LIT-CARDUPDTRANID                      PIC X(4)
+             VALUE 'CCUP'.
+         05  LIT-CARDUPDMAPSET                      PIC X(7)
+             VALUE 'COCRDUP'.
+         05  LIT-CARDUPDMAP                         PIC X(7)
+             VALUE 'CCRDUPA'.
+         05  LIT-CARDDELPGM                         PIC X(8)
+             VALUE 'COCRDDLC'.
+         05  LIT-CARDDELTRANID                      PIC X(4)
+             VALUE 'CCDD'.
+         05  LIT-CARDDELMAPSET                      PIC X(7)
+             VALUE 'COCRDDL'.
+         05  LIT-CARDDELMAP                         PIC X(7)
+             VALUE 'CCRDDLA'.
                                                                                 
                                                                                 
          05  LIT-CARD-FILE                          PIC X(8)                    
@@ -542,34 +552,61 @@
       *****************************************************************         
       *        TRANSFER TO CARD UPDATED PROGRAM                                 
       *****************************************************************         
-               WHEN CCARD-AID-ENTER                                             
-                AND UPDATE-REQUESTED-ON(I-SELECTED)                             
-                AND CDEMO-FROM-PROGRAM  EQUAL LIT-THISPGM                       
-                   MOVE LIT-THISTRANID    TO CDEMO-FROM-TRANID                  
-                   MOVE LIT-THISPGM       TO CDEMO-FROM-PROGRAM                 
-                   SET  CDEMO-USRTYP-USER TO TRUE                               
-                   SET  CDEMO-PGM-ENTER   TO TRUE                               
-                   MOVE LIT-THISMAPSET    TO CDEMO-LAST-MAPSET                  
-                   MOVE LIT-THISMAP       TO CDEMO-LAST-MAP                     
-                   MOVE LIT-CARDUPDPGM    TO CCARD-NEXT-PROG                    
-                                                                                
-                   MOVE LIT-CARDUPDMAPSET TO CCARD-NEXT-MAPSET                  
-                   MOVE LIT-CARDUPDMAP    TO CCARD-NEXT-MAP                     
-                                                                                
-                   MOVE WS-ROW-ACCTNO (I-SELECTED)                              
-                                          TO CDEMO-ACCT-ID                      
-                   MOVE WS-ROW-CARD-NUM (I-SELECTED)                            
-                                          TO CDEMO-CARD-NUM                     
-                                                                                
-      *            CALL CARD UPDATE PROGRAM                                     
-      *                                                                         
-                   EXEC CICS XCTL                                               
-                        PROGRAM (CCARD-NEXT-PROG)                               
-                        COMMAREA(CARDDEMO-COMMAREA)                             
-                   END-EXEC                                                     
-                                                                                
-      *****************************************************************         
-               WHEN OTHER                                                       
+               WHEN CCARD-AID-ENTER
+                AND UPDATE-REQUESTED-ON(I-SELECTED)
+                AND CDEMO-FROM-PROGRAM  EQUAL LIT-THISPGM
+                   MOVE LIT-THISTRANID    TO CDEMO-FROM-TRANID
+                   MOVE LIT-THISPGM       TO CDEMO-FROM-PROGRAM
+                   SET  CDEMO-USRTYP-USER TO TRUE
+                   SET  CDEMO-PGM-ENTER   TO TRUE
+                   MOVE LIT-THISMAPSET    TO CDEMO-LAST-MAPSET
+                   MOVE LIT-THISMAP       TO CDEMO-LAST-MAP
+                   MOVE LIT-CARDUPDPGM    TO CCARD-NEXT-PROG
+
+                   MOVE LIT-CARDUPDMAPSET TO CCARD-NEXT-MAPSET
+                   MOVE LIT-CARDUPDMAP    TO CCARD-NEXT-MAP
+
+                   MOVE WS-ROW-ACCTNO (I-SELECTED)
+                                          TO CDEMO-ACCT-ID
+                   MOVE WS-ROW-CARD-NUM (I-SELECTED)
+                                          TO CDEMO-CARD-NUM
+
+      *            CALL CARD UPDATE PROGRAM
+      *
+                   EXEC CICS XCTL
+                        PROGRAM (CCARD-NEXT-PROG)
+                        COMMAREA(CARDDEMO-COMMAREA)
+                   END-EXEC
+
+      *****************************************************************
+      *        TRANSFER TO CARD DELETE PROGRAM
+      *****************************************************************
+               WHEN CCARD-AID-ENTER
+                AND DELETE-REQUESTED-ON(I-SELECTED)
+                AND CDEMO-FROM-PROGRAM  EQUAL LIT-THISPGM
+                   MOVE LIT-THISTRANID    TO CDEMO-FROM-TRANID
+                   MOVE LIT-THISPGM       TO CDEMO-FROM-PROGRAM
+                   SET  CDEMO-USRTYP-USER TO TRUE
+                   SET  CDEMO-PGM-ENTER   TO TRUE
+                   MOVE LIT-THISMAPSET    TO CDEMO-LAST-MAPSET
+                   MOVE LIT-THISMAP       TO CDEMO-LAST-MAP
+                   MOVE LIT-CARDDELPGM    TO CCARD-NEXT-PROG
+
+                   MOVE LIT-CARDDELMAPSET TO CCARD-NEXT-MAPSET
+                   MOVE LIT-CARDDELMAP    TO CCARD-NEXT-MAP
+
+                   MOVE WS-ROW-ACCTNO (I-SELECTED)
+                                          TO CDEMO-ACCT-ID
+                   MOVE WS-ROW-CARD-NUM (I-SELECTED)
+                                          TO CDEMO-CARD-NUM
+
+                   EXEC CICS XCTL
+                        PROGRAM (CCARD-NEXT-PROG)
+                        COMMAREA(CARDDEMO-COMMAREA)
+                   END-EXEC
+
+      *****************************************************************
+               WHEN OTHER
       *****************************************************************         
                     MOVE WS-CA-FIRST-CARD-NUM                                   
                                   TO WS-CARD-RID-CARDNUM                        
@@ -1379,10 +1416,15 @@
            EXIT                                                                 
            .                                                                    
                                                                                 
-       9500-FILTER-RECORDS.                                                     
-           SET WS-DONOT-EXCLUDE-THIS-RECORD TO TRUE                             
-                                                                                
-           IF FLG-ACCTFILTER-ISVALID                                            
+       9500-FILTER-RECORDS.
+           SET WS-DONOT-EXCLUDE-THIS-RECORD TO TRUE
+
+           IF CARD-ACTIVE-STATUS = 'D'
+              SET WS-EXCLUDE-THIS-RECORD TO TRUE
+              GO TO 9500-FILTER-RECORDS-EXIT
+           END-IF
+
+           IF FLG-ACCTFILTER-ISVALID
               IF  CARD-ACCT-ID = CC-ACCT-ID                                     
                   CONTINUE                                                      
               ELSE                                                              
